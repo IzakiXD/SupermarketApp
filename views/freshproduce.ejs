@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fresh Produce - The Black Market</title>
+
+    <!-- Tailwind for header + layout -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <!-- Bootstrap (optional, for general components if needed) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body { background-color:#000; color:white; }
+
+        .qty-box {
+            display:flex;
+            gap:10px;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .qty-btn {
+            width:35px;
+            height:35px;
+            background:#374151;
+            color:white;
+            border:none;
+            border-radius:6px;
+            font-size:20px;
+        }
+
+        .qty-input {
+            width:60px;
+            text-align:center;
+            background:#1f2937;
+            color:white;
+            padding:5px;
+            border-radius:6px;
+            border:1px solid #4b5563;
+        }
+
+        .toast-msg {
+            position:fixed;
+            bottom:30px;
+            right:30px;
+            background:#22c55e;
+            color:white;
+            padding:12px 20px;
+            border-radius:8px;
+            box-shadow:0 0 10px black;
+            z-index:9999;
+            opacity:0;
+            animation:fadeInOut 2s ease forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity:0; transform:translateY(20px); }
+            15% { opacity:1; transform:translateY(0); }
+            85% { opacity:1; transform:translateY(0); }
+            100% { opacity:0; transform:translateY(20px); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Tailwind Header -->
+    <%- include('partials/header') %>
+
+    <div class="container mx-auto mt-10 px-4">
+
+        <h1 class="text-4xl font-bold">Fresh Produce</h1>
+        <p class="text-gray-400 mt-1">Showing <%= products.length %> items</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
+
+            <% products.forEach(product => { %>
+
+            <div class="bg-gray-900 rounded-lg shadow p-5">
+
+                <img src="/images/<%= product.image %>" 
+                     class="w-full h-64 object-cover rounded">
+
+                <h2 class="mt-4 text-xl font-semibold"><%= product.name %></h2>
+                <p class="text-gray-300">$<%= Number(product.price).toFixed(2) %></p>
+
+                <a href="/product/<%= product.productId %>"
+                   class="block w-full text-center bg-gray-600 hover:bg-gray-500 
+                          text-white py-2 rounded mt-3">
+                    View Product
+                </a>
+
+                <!-- ADD TO CART FORM (AJAX) -->
+                <form class="add-to-cart-form mt-4"
+                      data-product="<%= product.productId %>">
+
+                    <div class="qty-box mb-3">
+                        <button type="button" class="qty-btn"
+                                onclick="this.nextElementSibling.stepDown()">−</button>
+
+                        <input type="number" class="qty-input" name="quantity" value="1" min="1">
+
+                        <button type="button" class="qty-btn"
+                                onclick="this.previousElementSibling.stepUp()">+</button>
+                    </div>
+
+                    <button type="submit"
+                            class="w-full bg-green-600 hover:bg-green-500 
+                                   text-white py-2 rounded">
+                        Add to Cart
+                    </button>
+                </form>
+
+            </div>
+
+            <% }) %>
+
+        </div>
+    </div>
+
+    <!-- AJAX Add-to-Cart + Live Cart Bubble Update -->
+    <script>
+        document.querySelectorAll(".add-to-cart-form").forEach(form => {
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const productId = form.dataset.product;
+                const quantity = Number(form.querySelector(".qty-input").value);
+
+                const response = await fetch(`/addToCart/${productId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `quantity=${quantity}`
+                });
+
+                if (response.ok) {
+
+                    // 🚀 Instantly update cart bubble on this page
+                    document.querySelectorAll("#cart-count").forEach(bubble => {
+                        let current = Number(bubble.textContent) || 0;
+                        bubble.textContent = current + quantity;
+                    });
+
+                    // 🔄 Sync with backend to be safe
+                    updateCartCount();
+
+                    showToast("Added to cart!");
+                }
+            });
+        });
+
+        async function updateCartCount() {
+            try {
+                const res = await fetch("/cart/count");
+                const data = await res.json();
+
+                document.querySelectorAll("#cart-count").forEach(bubble => {
+                    bubble.textContent = data.count || 0;
+                });
+            } catch (err) {
+                console.error("Error updating cart count:", err);
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement("div");
+            toast.className = "toast-msg";
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+    </script>
+
+</body>
+</html>

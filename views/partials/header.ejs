@@ -1,0 +1,100 @@
+<header class="sticky top-0 z-50 bg-black border-b border-gray-600">
+  <div class="container mx-auto px-4 py-4">
+    <div class="flex items-center justify-between gap-4">
+      
+      <!-- LEFT: LOGO -->
+      <div class="flex items-center gap-2">
+        <a href="/" class="flex items-center gap-2">
+          <div class="w-10 h-10 bg-black rounded-lg flex items-center justify-center text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 
+                13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 
+                1.707.707 1.707H17m0 
+                0a2 2 0 100 4 2 2 0 
+                000-4zm-8 2a2 2 0 
+                11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <span class="header-logo text-white font-bold text-2xl">
+            The Black Market
+          </span>
+        </a>
+      </div>
+
+      <!-- MIDDLE: SEARCH BAR -->
+      <div class="flex-1 max-w-2xl hidden md:flex">
+        <div class="relative w-full">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input type="search"
+            placeholder="Search for products, brands and more..."
+            class="pl-10 pr-4 w-full h-10 border border-gray-300 rounded-md
+            focus:outline-none focus:ring-2 focus:ring-gray-600" />
+        </div>
+      </div>
+
+      <!-- RIGHT: ACCOUNT + CART -->
+      <div class="flex items-center gap-2">
+
+        <!-- ACCOUNT ICON -->
+        <div class="relative">
+          <button id="account-button"
+            type="button"
+            onclick="document.getElementById('account-menu').classList.toggle('hidden')"
+            class="p-2 hover:bg-gray-700 rounded text-white flex items-center gap-2">
+
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+
+          </button>
+
+          <div id="account-menu"
+            class="hidden absolute right-0 mt-2 w-48 bg-gray-800 text-white p-3 rounded shadow-lg text-sm">
+            <p>Welcome, <%= user && user.name ? user.name : 'Guest' %></p>
+            <div class="mt-2 border-t border-gray-700 pt-1">
+              <a href="/logout" class="block hover:underline text-xs text-gray-300">Logout</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- CART ICON -->
+        <a href="/cart" class="relative p-2 hover:bg-gray-700 rounded block text-white">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 
+              13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 
+              1.707.707 1.707H17m0 
+              0a2 2 0 100 4 2 2 0 
+              000-4zm-8 2a2 2 0 
+              11-4 0 2 2 0 014 0z"/>
+          </svg>
+
+          <!-- 🔥 THIS IS THE ONLY CART COUNT BUBBLE -->
+          <span id="cart-count"
+                class="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center 
+                       text-xs text-white bg-red-600 rounded-full">
+            <%= cartCount || 0 %>
+          </span>
+        </a>
+
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("account-menu");
+  const btn = document.getElementById("account-button");
+  if (!menu || !btn) return;
+  if (!menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.classList.add("hidden");
+  }
+});
+</script>

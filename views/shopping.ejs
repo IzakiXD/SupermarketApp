@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Black Market - Fresh Groceries Delivered</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #111111;
+      color: #f5f5f5;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* Custom animations */
+    .group:hover .group-hover\:scale-110 {
+      transform: scale(1.1);
+    }
+
+    .group:hover .group-hover\:opacity-100 {
+      opacity: 1;
+    }
+
+    .transition-transform {
+      transition: transform 0.3s ease;
+    }
+
+    .transition-opacity {
+      transition: opacity 0.3s ease;
+    }
+
+    .transition-shadow {
+      transition: box-shadow 0.3s ease;
+    }
+
+    .transition-colors {
+      transition: color 0.3s ease, background-color 0.3s ease;
+    }
+
+    /* Update header to use a serious font */
+    .header-logo {
+      font-family: 'Roboto', sans-serif;
+      font-weight: bold;
+      color: #ffffff;
+      font-size: 2.5rem;
+    }
+
+    /* Adjusting button and other elements for a darker, more serious theme */
+    .btn-primary {
+      background-color: #333333;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background-color: #444444;
+    }
+
+    .btn-secondary {
+      background-color: #444444;
+      color: #ffffff;
+    }
+
+    .btn-secondary:hover {
+      background-color: #555555;
+    }
+  </style>
+
+  <script>
+    function toggleAccountMenu() {
+      const menu = document.getElementById('account-menu');
+      if (menu) {
+        menu.classList.toggle('hidden');
+      }
+    }
+
+    // Close dropdown if click outside
+    document.addEventListener('click', function (event) {
+      const menu = document.getElementById('account-menu');
+      const button = document.getElementById('account-button');
+      if (!menu || !button) return;
+
+      if (!menu.contains(event.target) && !button.contains(event.target)) {
+        if (!menu.classList.contains('hidden')) {
+          menu.classList.add('hidden');
+        }
+      }
+    });
+  </script>
+</head>
+<body class="min-h-screen bg-black">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-black border-b border-gray-600">
+    <!-- Top bar REMOVED -->
+
+    <!-- Main header -->
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex items-center justify-between gap-4">
+        <!-- Logo -->
+        <div class="flex items-center gap-2">
+          <button class="lg:hidden p-2 hover:bg-gray-100 rounded">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+          <a href="/" class="flex items-center gap-2">
+            <div class="w-10 h-10 bg-black rounded-lg flex items-center justify-center text-white">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+            </div>
+            <span class="header-logo">The Black Market</span>
+          </a>
+        </div>
+
+        <!-- Search bar -->
+        <div class="flex-1 max-w-2xl hidden md:flex">
+          <div class="relative w-full">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <input
+              type="search"
+              placeholder="Search for products, brands and more..."
+              class="pl-10 pr-4 w-full h-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-600"
+            />
+          </div>
+        </div>
+
+        <!-- Right side actions -->
+        <div class="flex items-center gap-2">
+          <!-- ACCOUNT DROPDOWN -->
+          <div class="relative">
+            <button
+              id="account-button"
+              type="button"
+              onclick="toggleAccountMenu()"
+              class="p-2 hover:bg-gray-700 rounded text-white flex items-center gap-2"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </button>
+
+            <div
+              id="account-menu"
+              class="hidden absolute right-0 mt-2 w-48 bg-gray-800 text-white p-3 rounded shadow-lg text-sm"
+            >
+              <p>Welcome, <%= user && user.name ? user.name : 'Guest' %></p>
+              <div class="mt-2 border-t border-gray-700 pt-2">
+                <a href="/logout" class="block hover:underline text-xs text-gray-300">Logout</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- CART ICON WITH DYNAMIC COUNT -->
+          <a href="/cart" class="relative p-2 hover:bg-gray-700 rounded block text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <span class="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center text-xs text-white bg-red-600 rounded-full">
+              <%= typeof cartCount !== 'undefined' ? cartCount : 0 %>
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-r from-black to-gray-900 overflow-hidden">
+      <div class="container mx-auto px-4 py-12 md:py-20">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+          <div class="space-y-6">
+            <div class="inline-block bg-gray-700 text-white px-4 py-2 rounded-full text-sm font-medium">
+              Limited Time Offer
+            </div>
+            <h1 class="text-5xl md:text-6xl font-bold text-white">
+              Premium Groceries Delivered to Your Door
+            </h1>
+            <p class="text-xl text-gray-400">
+              Get the finest produce, meats, and pantry essentials delivered to your door, today. 
+              Save up to 30% on your first order!
+            </p>
+            <div class="flex flex-wrap gap-4">
+              <button class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-md transition-colors">
+                Shop Now
+              </button>
+              <button class="px-6 py-3 border border-gray-500 hover:bg-gray-800 font-medium rounded-md transition-colors">
+                View Weekly Ads
+              </button>
+            </div>
+          </div>
+          <div class="relative">
+            <img
+              src="https://images.unsplash.com/photo-1719528809959-082f7e5c2f8b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm9jZXJ5JTIwc2hvcHBpbmclMjBiYW5uZXJ8ZW58MXx8fHwxNzYzOTAxMTkxfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+              alt="Fresh groceries"
+              class="w-full h-auto rounded-2xl shadow-2xl"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="py-12 bg-black">
+      <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-white mb-8">Shop by Category</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <!-- Fresh Produce -->
+          <div class="overflow-hidden rounded-lg border border-gray-300 cursor-pointer hover:shadow-lg transition-shadow group">
+            <div class="aspect-square relative overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1498579397066-22750a3cb424?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmVzaCUyMGZydWl0c3xlbnwxfHx8fDE3NjM4NTc2OTB8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                alt="Fresh Produce"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+            <div class="p-3 text-center">
+              <a href="/freshproduce" class="text-white">Fresh Produce</a>
+            </div>
+          </div>
+
+          <!-- Bakery -->
+          <div class="overflow-hidden rounded-lg border border-gray-300 cursor-pointer hover:shadow-lg transition-shadow group">
+            <div class="aspect-square relative overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1674770067314-296af21ad811?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWtlcnklMjBicmVhZHxlbnwxfHx8fDE3NjM4NjQ1NTh8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                alt="Bakery"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+            <div class="p-3 text-center">
+              <a href="/bakery" class="text-white">Bakery</a>
+            </div>
+          </div>
+
+          <!-- Dairy & Eggs -->
+          <div class="overflow-hidden rounded-lg border border-gray-300 cursor-pointer hover:shadow-lg transition-shadow group">
+            <div class="aspect-square relative overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1581868164904-77b124b80242?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYWlyeSUyMHByb2R1Y3RzJTIwbWlsa3xlbnwxfHx8fDE3NjM4ODk2MjR8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                alt="Dairy & Eggs"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+            <div class="p-3 text-center">
+              <a href="/dairy_eggs" class="text-white">Dairy & Eggs</a>
+            </div>
+          </div>
+
+          <!-- Meat & Seafood -->
+          <div class="overflow-hidden rounded-lg border border-gray-300 cursor-pointer hover:shadow-lg transition-shadow group">
+            <div class="aspect-square relative overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1626132662510-34c4b521e0a0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWF0JTIwYnV0Y2hlcnxlbnwxfHx8fDE3NjM5MDExOTF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                alt="Meat & Seafood"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+            <div class="p-3 text-center">
+              <a href="/meat_seafood" class="text-white">Meat & Seafood</a>
+            </div>
+          </div>
+
+          <!-- Frozen Food -->
+          <div class="overflow-hidden rounded-lg border border-gray-300 cursor-pointer hover:shadow-lg transition-shadow group">
+            <div class="aspect-square relative overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1651383140368-9b3ee59c2981?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcm96ZW4lMjBmb29kfGVufDF8fHx8MTc2MzkwMTE5MXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                alt="Frozen Foods"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+            <div class="p-3 text-center">
+              <a href="/frozenfood" class="text-white">Frozen Food</a>
+            </div>
+          </div>
+
+          <!-- Beverages -->
+          <div class="overflow-hidden rounded-lg border border-gray-300 cursor-pointer hover:shadow-lg transition-shadow group">
+            <div class="aspect-square relative overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1652922664558-03d0f2932e58?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZXZlcmFnZXMlMjBkcmlua3N8ZW58MXx8fHwxNzYzODA1OTI0fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                alt="Beverages"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+            <div class="p-3 text-center">
+              <a href="/beverages" class="text-white">Beverages</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+</body>
+</html>
+  
