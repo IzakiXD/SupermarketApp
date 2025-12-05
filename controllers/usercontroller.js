@@ -2,32 +2,35 @@
 const bcrypt = require('bcrypt');
 const db = require('../db');
 
-// 🔐 Middleware: check if user is logged in
+/* ============================
+   AUTH MIDDLEWARE
+============================ */
 const checkAuthenticated = (req, res, next) => {
   if (req.session.user) {
     return next();
-  } else {
-    req.flash('error', 'Please log in to view this resource');
-    return res.redirect('/login');
   }
+  req.flash('error', 'Please log in to view this resource');
+  return res.redirect('/login');
 };
 
-// 🔐 Middleware: check if user is admin
 const checkAdmin = (req, res, next) => {
   if (req.session.user && req.session.user.role === 'Admin') {
     return next();
-  } else {
-    req.flash('error', 'Access denied');
-    return res.redirect('/shopping');
   }
+  req.flash('error', 'Access denied');
+  return res.redirect('/shopping');
 };
 
-// GET /
+/* ============================
+   HOME PAGE
+============================ */
 const getIndex = (req, res) => {
   res.render('index', { user: req.session.user });
 };
 
-// GET /register
+/* ============================
+   REGISTER PAGE
+============================ */
 const getRegister = (req, res) => {
   res.render('register', {
     messages: req.flash('error'),
@@ -35,22 +38,18 @@ const getRegister = (req, res) => {
   });
 };
 
-// POST /register
+/* ============================
+   REGISTER (POST)
+============================ */
 const postRegister = (req, res) => {
   const { name, email, number, password, gender, dob, role } = req.body;
 
-  // Validate role
-  if (role !== 'Customer' && role !== 'Admin') {
-    return res
-      .status(400)
-      .send('Invalid role. Please select either Customer or Admin.');
+  if (!['Customer', 'Admin'].includes(role)) {
+    return res.status(400).send('Invalid role.');
   }
 
-  // Hash password then insert user
   bcrypt.hash(password, 10, (err, hashedPassword) => {
-    if (err) {
-      return res.status(500).send('Error hashing password');
-    }
+    if (err) return res.status(500).send('Error hashing password');
 
     const sql = `
       INSERT INTO user (name, email, number, password_hash, gender, dob, role)
@@ -72,7 +71,9 @@ const postRegister = (req, res) => {
   });
 };
 
-// GET /login
+/* ============================
+   LOGIN PAGE
+============================ */
 const getLogin = (req, res) => {
   res.render('login', {
     messages: req.flash('success'),
@@ -80,7 +81,9 @@ const getLogin = (req, res) => {
   });
 };
 
-// POST /login
+/* ============================
+   LOGIN (POST)
+============================ */
 const postLogin = (req, res) => {
   const { email, password } = req.body;
 
@@ -91,9 +94,7 @@ const postLogin = (req, res) => {
 
   const sql = 'SELECT * FROM user WHERE email = ?';
   db.query(sql, [email], (err, results) => {
-    if (err) {
-      throw err;
-    }
+    if (err) throw err;
 
     if (results.length === 0) {
       req.flash('error', 'Invalid email or password.');
@@ -103,26 +104,29 @@ const postLogin = (req, res) => {
     const user = results[0];
 
     bcrypt.compare(password, user.password_hash, (err2, isMatch) => {
-      if (err2) {
-        return res.status(500).send('Error comparing password');
-      }
-
+      if (err2) return res.status(500).send('Error comparing password');
       if (!isMatch) {
         req.flash('error', 'Invalid email or password.');
         return res.redirect('/login');
       }
 
-      // Successful login
+      // SUCCESSFUL LOGIN
       req.session.user = user;
       req.flash('success', 'Login successful!');
 
-      // Customer -> shopping, Admin -> inventory (original behaviour)
-      return res.redirect(user.role === 'Customer' ? '/shopping' : '/inventory');
+      // ⭐ NEW REDIRECT LOGIC
+      if (user.role === 'Admin') {
+        return res.redirect('/admin/dashboard'); // ADMIN GOES TO DASHBOARD
+      } else {
+        return res.redirect('/shopping'); // CUSTOMER GOES SHOPPING
+      }
     });
   });
 };
 
-// GET /logout
+/* ============================
+   LOGOUT
+============================ */
 const logout = (req, res) => {
   req.session.destroy(() => {
     res.redirect('/');

@@ -34,3 +34,21 @@ const showPaymentPage = (req, res) => {
 module.exports = {
   showPaymentPage
 };
+
+// ADMIN: VIEW ALL PAYMENTS
+exports.getAdminPayments = (req, res) => {
+    const sql = `
+        SELECT p.paymentID, u.name, p.amount, p.method, p.status, p.paymentdate
+        FROM payment p
+        JOIN user u ON p.iduser = u.iduser
+        ORDER BY p.paymentdate DESC
+    `;
+
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Error loading admin payments:", err);
+            return res.send("Error loading admin payments");
+        }
+        res.render("admin_payments", { payments: results, user: req.session.user });
+    });
+};

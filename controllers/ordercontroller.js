@@ -49,3 +49,21 @@ exports.createOrder = (req, res) => {
     });
   });
 };
+
+// ADMIN: VIEW ALL ORDERS
+exports.getAdminOrders = (req, res) => {
+    const sql = `
+        SELECT p.paymentID, p.iduser, u.name, p.amount, p.status, p.method, p.paymentdate
+        FROM payment p
+        JOIN user u ON p.iduser = u.iduser
+        ORDER BY p.paymentdate DESC
+    `;
+
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Error loading admin orders:", err);
+            return res.send("Error loading admin orders");
+        }
+        res.render("admin_orders", { orders: results, user: req.session.user });
+    });
+};
