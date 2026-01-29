@@ -14,6 +14,8 @@ const cartController = require('./controllers/cartcontroller');
 const productController = require('./controllers/productcontroller');
 const orderController = require('./controllers/ordercontroller');
 const paymentController = require('./controllers/paymentcontroller');
+const paypalController = require('./controllers/paypalController');
+
 
 // Middleware
 const { checkAuthenticated, checkAdmin } = require('./middleware/authentication');
@@ -175,6 +177,22 @@ app.post('/checkout', checkAuthenticated, (req, res) => {
   });
 });
 
+app.get(
+  '/payment/paypal/success',
+  checkAuthenticated,
+  paypalController.capturePaypalPayment
+);
+
+app.get('/payment/paypal/cancel', (req, res) => {
+  res.redirect('/cart');
+});
+
+app.get(
+  '/payment/paypal/:id',
+  checkAuthenticated,
+  paypalController.startPaypalPayment
+);
+
 /* ============================
    PAYMENT SUMMARY
 ============================ */
@@ -240,6 +258,38 @@ app.get('/receipt/:id', checkAuthenticated, (req, res) => {
   });
 });
 
+// PayPal: Create Order
+app.post('/api/paypal/create-order', async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const order = await paypal.createOrder(amount);
+    if (order && order.id) {
+      res.json({ id: order.id });
+    } else {
+      res.status(500).json({ error: 'Failed to create PayPal order', details: order });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create PayPal order', message: err.message });
+  }
+});
+
+// PayPal: Capture Order
+app.post('/api/paypal/capture-order', async (req, res) => {
+  try {
+    const { orderID } = req.body;
+    const capture = await paypal.captureOrder(orderID);
+console.log('PayPal captureOrder response:', capture);
+
+    if (capture.status === "COMPLETED") {
+      // Call your pay method, passing transaction details and user info
+      await FinesController.pay(req, res, capture);
+    } else {
+      res.status(400).json({ error: 'Payment not completed', details: capture });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to capture PayPal order', message: err.message });
+  }
+});
 
 /* ============================
    SERVER START

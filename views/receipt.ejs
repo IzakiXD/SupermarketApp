@@ -63,6 +63,7 @@
         </div>
 
         <div class="invoice-box">
+            <% const methodLabel = payment.transaction_id ? 'PayPal' : (payment.method || 'N/A'); %>
 
             <!-- Invoice Number -->
             <div class="info-row">
@@ -89,7 +90,7 @@
             <div class="section-title">Payment Summary</div>
             <div class="info-row">
                 <p><strong>Amount Paid:</strong> $<%= Number(payment.amount).toFixed(2) %></p>
-                <p><strong>Payment Method:</strong> <%= payment.method || "N/A" %></p>
+                <p><strong>Payment Method:</strong> <%= methodLabel %></p>
                 <p><strong>Status:</strong>
                     <% if (payment.status === 'Paid') { %>
                         <span class="badge bg-success">Paid</span>
