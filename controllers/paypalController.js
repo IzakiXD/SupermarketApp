@@ -118,7 +118,7 @@ async function handleCapture(req, res, payment, token) {
 
     // 3️⃣ Update payment status (enum only allows card/paynow, so store lowercase paypal)
     db.query(
-      "UPDATE payment SET method='paynow', status='Paid' WHERE paymentID=?",
+      "UPDATE payment SET method='PayPal', status='Paid' WHERE paymentID=?",
       [payment.paymentID]
     );
 

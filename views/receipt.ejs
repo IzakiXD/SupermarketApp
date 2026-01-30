@@ -63,7 +63,19 @@
         </div>
 
         <div class="invoice-box">
-            <% const methodLabel = payment.transaction_id ? 'PayPal' : (payment.method || 'N/A'); %>
+            <%
+              // Prefer PayPal when a transaction_id exists, otherwise use stored method
+              const methodLabel = (() => {
+                if (payment.transaction_id) return 'PayPal';
+                switch ((payment.method || '').toLowerCase()) {
+                  case 'paypal': return 'PayPal';
+                  case 'paynow': return 'PayNow';
+                  case 'card': return 'Card';
+                  case 'nets': return 'NETS';
+                  default: return 'N/A';
+                }
+              })();
+            %>
 
             <!-- Invoice Number -->
             <div class="info-row">

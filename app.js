@@ -1,9 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const axios = require('axios');
 const flash = require('connect-flash');
 const multer = require('multer');
 const path = require('path');
+const netsQr = require('./services/nets');
 
 const db = require('./db');
 
@@ -38,6 +40,7 @@ const upload = multer({ storage });
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'secret',
@@ -218,6 +221,119 @@ app.post('/payment/paynow/confirm/:id', checkAuthenticated, (req, res) => {
     db.query("DELETE FROM cart WHERE iduser=?", [userId], () => {
       res.redirect(`/receipt/${paymentID}`);
     });
+  });
+});
+
+/* ============================
+   NETS QR ROUTES
+============================ */
+app.get('/payment/nets/:id', checkAuthenticated, (req, res) => {
+  const paymentID = req.params.id;
+
+  db.query('SELECT amount FROM payment WHERE paymentID = ?', [paymentID], (err, result) => {
+    if (err || result.length === 0) return res.send("Payment not found");
+    res.render('nets', { amount: result[0].amount, paymentID });
+  });
+});
+
+app.post('/payment/nets/confirm/:id', checkAuthenticated, (req, res) => {
+  const paymentID = req.params.id;
+  const userId = req.session.user.iduser;
+
+  db.query(
+    "UPDATE payment SET method='NETS', status='Paid' WHERE paymentID=?",
+    [paymentID],
+    () => {
+      db.query("DELETE FROM cart WHERE iduser=?", [userId], () => {
+        res.redirect(`/receipt/${paymentID}`);
+      });
+    }
+  );
+});
+
+// Generate dynamic NETS QR using sandbox API (payment-aware)
+const handleNetsQr = (req, res) => {
+  const paymentID = req.params.id;
+
+  // get amount from DB to avoid trusting client
+  db.query('SELECT amount FROM payment WHERE paymentID = ?', [paymentID], (err, result) => {
+    if (err || result.length === 0) return res.send("Payment not found");
+    // pass amount to the nets service using the same shape it expects
+    req.body.cartTotal = Number(result[0].amount).toFixed(2);
+    netsQr.generateQrCode(req, res);
+  });
+};
+
+// Handle NETS QR for both POST (form submit) and GET (manual revisit)
+app.all('/payment/nets/:id/qr', checkAuthenticated, handleNetsQr);
+
+app.get("/nets-qr/success", checkAuthenticated, (req, res) => {
+  res.render('netsTxnSuccessStatus', { message: 'Transaction Successful!' });
+});
+
+app.get("/nets-qr/fail", checkAuthenticated, (req, res) => {
+  res.render('netsTxnFailStatus', { message: 'Transaction Failed. Please try again.' });
+});
+
+// Server-Sent Events endpoint for polling NETS payment status
+app.get('/sse/payment-status/:txnRetrievalRef', checkAuthenticated, async (req, res) => {
+  res.set({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive'
+  });
+
+  const txnRetrievalRef = req.params.txnRetrievalRef;
+  let pollCount = 0;
+  const maxPolls = 60; // 5 minutes if polling every 5s
+  let frontendTimeoutStatus = 0;
+
+  const interval = setInterval(async () => {
+    pollCount++;
+
+    try {
+      const response = await axios.post(
+        'https://sandbox.nets.openapipaas.com/api/v1/common/payments/nets-qr/query',
+        { txn_retrieval_ref: txnRetrievalRef, frontend_timeout_status: frontendTimeoutStatus },
+        {
+          headers: {
+            'api-key': process.env.API_KEY,
+            'project-id': process.env.PROJECT_ID,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      res.write(`data: ${JSON.stringify(response.data)}\n\n`);
+
+      const resData = response.data.result.data;
+
+      if (resData.response_code === "00" && resData.txn_status === 1) {
+        res.write(`data: ${JSON.stringify({ success: true })}\n\n`);
+        clearInterval(interval);
+        return res.end();
+      } else if (frontendTimeoutStatus === 1 && resData && (resData.response_code !== "00" || resData.txn_status === 2)) {
+        res.write(`data: ${JSON.stringify({ fail: true, ...resData })}\n\n`);
+        clearInterval(interval);
+        return res.end();
+      }
+
+    } catch (err) {
+      clearInterval(interval);
+      res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+      return res.end();
+    }
+
+    if (pollCount >= maxPolls) {
+      clearInterval(interval);
+      frontendTimeoutStatus = 1;
+      res.write(`data: ${JSON.stringify({ fail: true, error: "Timeout" })}\n\n`);
+      return res.end();
+    }
+  }, 5000);
+
+  req.on('close', () => {
+    clearInterval(interval);
   });
 });
 
